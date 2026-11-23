@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrailGuard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 24 C10 24 9 8 16 8 S22 24 29 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="3" cy="24" r="2.6"/><circle cx="16" cy="8" r="2.6"/><circle cx="29" cy="24" r="2.6"/></svg>
+    <div>
+      <h1>TrailGuard</h1>
+      <p class="tagline">Account takeover leaves a trail. Every agent sees it.</p>
+    </div>
+  </div>
+  <div class="context" id="context" aria-live="polite">Connecting…</div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button role="tab" aria-selected="true" data-view="live">Live</button>
+  <button role="tab" aria-selected="false" data-view="decision">Explain a decision</button>
+  <button role="tab" aria-selected="false" data-view="learn">Learnings</button>
+  <button role="tab" aria-selected="false" data-view="results">Results</button>
+  <button role="tab" aria-selected="false" data-view="audit">Audit report</button>
+</nav>
+
+<main>
+  <!-- LIVE -->
+  <section class="view" id="view-live">
+    <form class="runbar" id="runform">
+      <label>Context
+        <select name="mode" id="mode">
+          <option value="isolated">Isolated agents (no sharing)</option>
+          <option value="stuffed">Shared by pasting everything</option>
+          <option value="meko" selected>Shared through Meko</option>
+          <option value="meko+patterns">Meko + approved patterns</option>
+        </select>
+      </label>
+      <label>Seed <input name="seed" type="number" value="1" min="1"></label>
+      <label>Epoch <select name="epoch"><option>1</option><option>2</option></select></label>
+      <label>Events <input name="events" type="number" value="600" min="200" step="100"></label>
+      <label>Speed <select name="pace"><option value="12">Slow</option><option value="30" selected>Demo</option><option value="0">Instant</option></select></label>
+      <button type="submit" class="primary" id="startbtn">Start run</button>
+    </form>
+
+    <div class="scoreline" id="scoreline">
+      <div><b id="s-stopped">0</b><span>takeovers stopped</span></div>
+      <div><b id="s-early">0</b><span>stopped early</span></div>
+      <div class="bad"><b id="s-completed">0</b><span>takeovers completed</span></div>
+      <div><b id="s-signals">0</b><span>signals shared</span></div>
+      <div><b id="s-reads">0</b><span>cross-agent reads</span></div>
+      <div><b id="s-decisions">0</b><span>decisions</span></div>
+    </div>
+
+    <figure class="trail">
+      <figcaption>
+        <h2>The trail</h2>
+        <p>Each dot is a risk signal an agent saw. A thread appears when another agent reads it from shared memory before acting. Diamonds are the Sentinel's decisions.</p>
+      </figcaption>
+      <svg id="trail" role="img" aria-label="Agent signals and cross-agent reads over time"></svg>
+      <ul class="legend" aria-hidden="true">
+        <li><i class="dot"></i>signal</li><li><i class="thread"></i>read by another agent</li>
+        <li><i class="dia allow"></i>allow</li><li><i class="dia step"></i>step-up</li><li><i class="dia stop"></i>hold or block</li>
+        <li><i class="flag done"></i>takeover completed</li>
+      </ul>
+    </figure>
+
+    <div class="split">
+      <section>
+        <h2>Planted attacks</h2>
+        <p class="hint" id="attack-hint">Start a run to watch the planted takeover attempts.</p>
+        <ol class="attacks" id="attacks"></ol>
+      </section>
+      <section>
+        <h2>Latest decisions</h2>
+        <ol class="feed" id="feed"></ol>
+      </section>
+    </div>
+  </section>
+
+  <!-- DECISION -->
+  <section class="view" id="view-decision" hidden>
+    <div class="pickrow">
+      <label>Run <select id="dec-run"></select></label>
+      <label>Decision <select id="dec-n"></select></label>
+    </div>
+    <article class="story" id="story"><p class="hint">Pick a run and a decision. Anyone should be able to answer "why did the agents do that?" from this page in two minutes.</p></article>
+  </section>
+
+  <!-- LEARN -->
+  <section class="view" id="view-learn" hidden>
+    <div class="intro">
+      <h2>Learn from confirmed attacks</h2>
+      <p>After a run, confirmed takeovers become candidate attacker patterns in Meko. Nothing reaches other agents until an analyst approves it; approving promotes the pattern into the datapack's collective memory.</p>
+      <div class="pickrow">
+        <label>From run <select id="learn-run"></select></label>
+        <button class="primary" id="learnbtn">Create candidate patterns</button>
+      </div>
+    </div>
+    <h3>Waiting for review</h3>
+    <div id="pending"><p class="hint">No candidates yet.</p></div>
+    <h3>In collective memory</h3>
+    <div id="approved"><p class="hint">No approved patterns yet.</p></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="view" id="view-results" hidden>
+    <div class="intro">
+      <h2>Same agents, same attacks, different context</h2>
+      <p>Only the context layer changes between columns. Epoch 2 uses new victims and part of the same attacker infrastructure.</p>
+      <button id="benchbtn">Run a quick offline benchmark</button>
+    </div>
+    <div id="results"><p class="hint">No benchmark yet. Run <code>trailguard bench</code> or use the button.</p></div>
+  </section>
+
+  <!-- AUDIT -->
+  <section class="view" id="view-audit" hidden>
+    <div class="pickrow">
+      <label>Run <select id="audit-run"></select></label>
+      <a id="audit-dl" class="button" download>Download Markdown</a>
+    </div>
+    <article class="report" id="report"><p class="hint">Pick a run to generate its audit report.</p></article>
+  </section>
+</main>
+<script src="/static/app.js" type="module"></script>
+</body>
+</html>

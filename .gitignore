@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+# Secrets
+.env
+# Run outputs
+runs/
+data/generated/
+# Local tooling
+.remember/
+.playwright-mcp/
+.trailguard.json
+.reticle-setup-crash.log
+*.stackdump

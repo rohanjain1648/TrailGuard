@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/trailguard/web/static/styles.css"
+        ],
+        "createdAt": "2026-11-19T23:12:11.096Z",
+        "reason": "Claude triage: L120 is the .timeline rail connecting evidence dots in time order (vertical timeline line with circular markers), not a card side accent"
+      }
+    ]
+  }
+}
